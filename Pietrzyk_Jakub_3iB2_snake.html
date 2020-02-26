@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        body{
+
+        }
+
+        #game_box {
+          position: absolute;
+          top: 20px;
+          left: 500px;
+          /* width: 80vw; */
+          margin: 0 auto;
+          /* padding: 30px; */
+          background-color: lightskyblue;
+        }
+
+        .small-square {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            padding: 0;
+            text-align: center;
+            background-color: lightskyblue;
+            /* border: 2px solid white; */
+        }
+
+        .box-row {
+            width: 100%;
+            padding: 0;
+            display: flex;
+            align-self: center;
+            justify-content: center;
+            height: 30px;
+        }
+
+        .limit {
+            background-color: black;
+        }
+
+        .small-square.snake-field {
+            background-color: green;
+        }
+
+        .fruit {
+            background-color: red;
+            border-radius: 25px;
+        }
+        .fruit{
+          background-color: yellow;
+        }
+        .up{
+          border-top-right-radius: 25px;
+          border-top-left-radius: 25px;
+        }
+        .left{
+          border-top-left-radius: 25px;
+          border-bottom-left-radius: 25px;
+        }
+        .down{
+          border-bottom-left-radius: 25px;
+          border-bottom-right-radius: 25px;
+        }
+        .right{
+          border-top-right-radius: 25px;
+          border-bottom-right-radius: 25px;
+        }
+        .right-top{
+          border-top-right-radius: 25px;
+        }
+        .right-bottom{
+          border-bottom-right-radius: 25px;
+        }
+
+        .left-bottom{
+          border-bottom-left-radius: 25px;
+        }
+        .left-top{
+          border-top-left-radius: 25px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script>
+        var table = {};
+        var length = 1;
+        var snakeInterval;
+        var destination = "up";
+        var keys = {
+          "w": "up",
+          "a": "left",
+          "s": "down",
+          "d": "right"
+        }
+        var snake_table = [[9,9]]
+        var started = false;
+
+        function setTurns(front, mid, last){
+          // console.log("Na przedzie: " + front);
+          // console.log("Na końcu: " + last);
+
+          if(front[0] - last[0] != 0 && front[1] - last[1] != 0){
+            var x = front[0]-last[0]
+            var y = front[1]-last[1]
+            if(x == 1 && y == 1) {
+                if(front[0] == mid[0]){
+                  document.querySelector("#_" + mid[0] + "_" + mid[1]).classList.add("left-bottom")
+                } else if(last[0] == mid[0]){
+                  document.querySelector("#_" + mid[0] + "_" + mid[1]).classList.add("right-top") //.style.borderTopRightRadius = "25px"
+                }
+              }
+            if(x == -1 && y == 1){
+              if(front[0] == mid[0]){
+                document.querySelector("#_" + mid[0] + "_" + mid[1]).classList.add("left-top") //.style.borderTopLeftRadius = "25px";
+              } else if(last[0] == mid[0]){
+                document.querySelector("#_" + mid[0] + "_" + mid[1]).classList.add("right-bottom") //.style.borderBottomRightRadius = "25px"
+              }
+            }
+            if(x == 1 && y == -1){
+              if(front[0] == mid[0]){
+                document.querySelector("#_" + mid[0] + "_" + mid[1]).classList.add("right-bottom") //.style.borderBottomRightRadius = "25px";
+              } else if(last[0] == mid[0]){
+                document.querySelector("#_" + mid[0] + "_" + mid[1]).classList.add("left-top") //.style.borderTopLeftRadius = "25px"
+              }
+            }
+            if(x == -1 && y == -1){
+              if(front[0] == mid[0]){
+                document.querySelector("#_" + mid[0] + "_" + mid[1]).classList.add("right-top") //.style.borderTopRightRadius = "25px";
+              } else if(last[0] == mid[0]){
+                document.querySelector("#_" + mid[0] + "_" + mid[1]).classList.add("left-bottom") //.style.borderBottomLeftRadius = "25px"
+              }
+            }
+          }
+        }
+
+        function setDestination(tab1, tab2){
+          if(tab1[0] - tab2[0] == 0){
+            if(tab1[1] - tab2[1] == -1){
+              return "left"
+            } else if(tab1[1] - tab2[1] == 1){
+              return "right"
+            }
+          } else if(tab1[0] - tab2[0] == 1){
+            return "down"
+          } else if(tab1[0] - tab2[0] == -1){
+            return "up"
+          }
+        }
+
+        function setRadius(){
+          for(var i=0;i<snake_table.length;i++){
+            remove_classes = Object.values(keys)
+            document.querySelector("#_" + snake_table[i][0] + "_" + snake_table[i][1]).classList.remove(remove_classes[0], remove_classes[1], remove_classes[2], remove_classes[3])
+            if(i==0){
+              document.querySelector("#_" + snake_table[i][0] + "_" + snake_table[i][1]).classList.add(destination);
+            }
+            if(i == snake_table.length-1 && snake_table.length > 1){
+              dest = setDestination(snake_table[i], snake_table[i-1])
+              document.querySelector("#_" + snake_table[i][0] + "_" + snake_table[i][1]).classList.add(dest);
+            }
+            if(i == snake_table.length-1 && snake_table.length == 1){
+              dest = setDestination(snake_table[i], get_new_ids(snake_table[0]))
+              document.querySelector("#_" + snake_table[i][0] + "_" + snake_table[i][1]).classList.add(dest);
+            }
+            if(snake_table.length > 2 && i > 0 && i < snake_table.length-1){
+              setTurns(snake_table[i-1], snake_table[i], snake_table[i+1])
+            }
+          }
+        }
+
+        function get_cords(id){
+          id = id.split("_")
+          id.shift()
+          return [parseInt(id[0]),parseInt(id[1])]
+        }
+
+        function get_new_ids(ids){
+          var fir = ids[0]
+          var sec = ids[1]
+          switch (destination) {
+            case "up":
+              fir--
+              break;
+            case "down":
+              fir++
+              break;
+            case "left":
+              sec--
+            break;
+            case "right":
+              sec++
+            break;
+            default:
+              fir--
+          }
+          return [fir,sec]
+        }
+
+        function check_field(ids){
+          if(table["_"+ids[0]+"_"+ids[1]] == "X"){
+            return false
+          } else if(document.querySelector("#_" + ids[0] + "_" + ids[1]).classList.contains("snake-field")){
+            return false
+          } else {
+            if(table["_"+ids[0]+"_"+ids[1]] == "F"){
+              random_fruit()
+              document.querySelector("#_" + ids[0] + "_" + ids[1]).classList.remove("fruit")
+              table["_"+ids[0]+"_"+ids[1]] = 0;
+              length++;
+              return true;
+            } else {
+              return true;
+            }
+          }
+        }
+
+        function random_fruit(){
+          first_id = Math.round(Math.random() * (18 - 1) + 1);
+          second_id = Math.round(Math.random() * (18 - 1) + 1);
+          el = document.querySelector("#_" + first_id + "_" + second_id)
+          if(el.classList.contains("snake-field")){
+            random_fruit()
+          } else {
+            el.classList.add("fruit")
+            table["_"+first_id+"_"+second_id] = "F"
+          }
+        }
+
+
+        var box = document.createElement("div");
+        box.id = "game_box";
+        for (var i = 0; i < 20; i++) {
+            row = document.createElement("div");
+            row.className = "box-row";
+            for (var j = 0; j < 20; j++) {
+                var square = document.createElement("span");
+                var num = 0;
+                square.className = "small-square";
+                square.id = "_" + i + '_' + j;
+                if (i == 0 || j == 0 || i == 19 || j == 19) {
+                    square.classList.add("limit");
+                    num = "X";
+                }
+                if (i == 9 && j == 9) {
+                    num = 1;
+                    square.classList.add("snake-field", "up", "down");
+                }
+                table["_" + i + "_" + j] = num
+                row.appendChild(square);
+            }
+            box.appendChild(row);
+        }
+        document.body.append(box);
+        random_fruit()
+
+
+        document.onkeypress = function (e) {
+          if (Object.keys(keys).includes(e.key)) {
+            destination = keys[e.key];
+            if(!started){
+              started = true;
+              start()
+            }
+          }
+        }
+
+        function start(){
+        snakeInterval = setInterval(function(){
+          new_ids = get_new_ids(snake_table[0])
+          if(check_field(new_ids)){
+            new_field = document.querySelector("#_" + new_ids[0] + "_" + new_ids[1]);
+            new_field.classList.add("snake-field");
+            snake_table.unshift(new_ids)
+            if(snake_table.length < length || snake_table.length > length){
+              remove_classes = Object.values(keys)
+              last_ids = snake_table[snake_table.length-1];
+              snake_table.pop();
+              document.querySelector("#_" + last_ids[0] + "_" + last_ids[1]).classList.remove("snake-field",remove_classes[0], remove_classes[1], remove_classes[2], remove_classes[3], "left-top", "left-bottom", "right-top", "right-bottom");
+            }
+            setRadius()
+          } else {
+              alert("You lost");
+              location.reload()
+          }
+        }, 100);}
+
+    </script>
+</body>
+
+</html>
